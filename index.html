@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Verification Required</title>
+    <title>SYSTEM CRITICAL ERROR</title>
     <style>
-        /* إعدادات الصفحة الأساسية */
+        /* الأساسيات */
         body, html {
             margin: 0;
             padding: 0;
@@ -15,278 +15,315 @@
             font-family: 'Courier New', monospace;
             overflow: hidden;
             user-select: none;
-            -webkit-user-select: none;
         }
 
-        /* 1. صفحة الطعم (Google Verification Style) */
-        #lure-screen {
+        /* 1. طبقة الماتريكس (Canvas) */
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+
+        /* 2. طبقة التشويش (Noise & Scanlines) */
+        .overlay-effects {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
         }
 
-        .verify-box {
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 80%;
-            max-width: 300px;
-        }
-
-        .btn-verify {
-            background: #1a73e8;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-top: 20px;
-            cursor: pointer;
-        }
-
-        /* 2. شاشة الرعب والاختراق */
-        #hack-screen {
-            display: none;
+        /* 3. حاوية المحتوى */
+        #terminal-container {
             position: relative;
+            z-index: 20;
             width: 100%;
             height: 100%;
-            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* المحتوى يبدأ من تحت */
             padding: 20px;
             box-sizing: border-box;
-        }
-
-        /* تأثير الخطوط (CRT) */
-        .scanline {
-            position: fixed;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 50;
+            background: rgba(0, 20, 0, 0.3); /* تغميق خفيف */
         }
 
         /* نصوص البيانات */
-        .console-line {
+        .log-entry {
             font-size: 14px;
-            margin-bottom: 8px;
-            opacity: 0; /* مخفي في البداية */
-            animation: typeOn 0.1s forwards;
-            border-bottom: 1px solid #111;
-            padding-bottom: 2px;
+            color: #0f0;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px #0f0;
+            opacity: 0.9;
+            word-wrap: break-word;
         }
 
-        .label { color: #00ff00; margin-right: 10px; }
-        .data { color: #fff; font-weight: bold; text-transform: uppercase; }
-        .danger { color: #ff3333; text-shadow: 0 0 5px red; font-size: 16px; }
-
-        /* منطقة سرقة الملفات */
-        #files-area {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 40%;
-            overflow: hidden;
-            border-top: 2px solid #ff3333;
-            background: rgba(20, 0, 0, 0.5);
+        .highlight {
+            color: #fff;
+            background: #004400;
+            padding: 2px 5px;
+            font-weight: bold;
         }
 
-        .stealing-header {
+        .danger-text {
+            color: red;
+            font-weight: bold;
+            text-shadow: 0 0 5px red;
+            animation: blink 0.5s infinite;
+        }
+
+        /* مربع البيانات الشخصية المرعب */
+        #victim-box {
+            border: 2px solid red;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none; /* يظهر لاحقاً */
+            box-shadow: 0 0 20px red;
+        }
+
+        /* شريط التحميل الواقعي */
+        .progress-wrapper {
+            margin-top: 10px;
+            border: 1px solid #0f0;
+            padding: 2px;
+            height: 25px;
+            position: relative;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #0f0;
+            box-shadow: 0 0 10px #0f0;
+            transition: width 0.2s linear; /* حركة ناعمة بس إحنا هنتحكم فيها */
+        }
+
+        #progress-text {
             position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff3333;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
             color: #000;
-            padding: 2px 10px;
             font-weight: bold;
             font-size: 12px;
+            z-index: 2;
         }
 
-        /* الأيقونات الطائرة */
-        .flying-obj {
-            position: absolute;
-            bottom: -60px;
-            font-size: 40px;
-            opacity: 0.8;
-            animation: floatUp linear forwards;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-400px) scale(0.5); opacity: 0; }
-        }
-
-        @keyframes typeOn { to { opacity: 1; } }
-        
-        /* وميض أحمر للشاشة */
-        .alert-flash {
-            animation: flashRed 1s infinite;
-        }
-
-        @keyframes flashRed {
-            0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-            50% { box-shadow: inset 0 0 50px 20px rgba(255, 0, 0, 0.5); }
+        /* شاشة البداية */
+        #start-screen {
+            position: fixed;
+            z-index: 100;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
         }
 
         /* شاشة النهاية */
         #end-screen {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 10000;
+            background: #111; z-index: 200;
+            color: white;
             flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; font-family: Tahoma, sans-serif;
+            text-align: center;
         }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="lure-screen">
-        <div class="verify-box">
-            <h3 style="margin-top: 0; color: #333;">Security Check</h3>
-            <p style="color: #666; font-size: 14px;">Please verify you are human to continue.</p>
-            <div style="background: #f9f9f9; padding: 15px; margin: 10px 0; border: 1px solid #ddd;">
-                <input type="checkbox" id="human-chk" onclick="startPrank()"> I'm not a robot
-            </div>
-            <p style="font-size: 10px; color: #999;">Google Recaptcha Simulation</p>
+    <div id="start-screen" onclick="startNightmare()">
+        <div style="text-align: center;">
+            <h2 style="color: #333; font-family: Arial;">تحقق أمني</h2>
+            <p style="color: #666;">اضغط للمتابعة...</p>
+            <div style="font-size: 40px; animation: blink 1s infinite;">👆</div>
         </div>
     </div>
 
-    <div id="hack-screen">
-        <div class="scanline"></div>
-        <div id="console"></div>
+    <canvas id="matrix"></canvas>
+
+    <div class="overlay-effects"></div>
+
+    <div id="terminal-container" style="display: none;">
         
-        <div id="files-area">
-            <div class="stealing-header">UPLOADING DATA TO CLOUD...</div>
-            <div id="file-counter" style="position: absolute; top: 10px; right: 10px; color: #ff3333; font-weight: bold;">0 Files</div>
+        <div id="log-area" style="flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;"></div>
+
+        <div id="victim-box">
+            <div style="text-align: center; color: red; border-bottom: 1px solid red; margin-bottom: 10px;">TARGET IDENTIFIED</div>
+            <div class="log-entry">NAME: <span class="highlight">SEIF AYMAN MOSTAFA</span></div>
+            <div class="log-entry">DEVICE: <span class="highlight">IPHONE 11</span></div>
+            <div class="log-entry">LOC: <span class="highlight">GIZA, AL KHAMAYEL</span></div>
+            <div class="log-entry">AREA: <span class="highlight">6 OCTOBER</span></div>
+        </div>
+
+        <div class="log-entry" id="status-text">INITIALIZING UPLOAD...</div>
+        
+        <div class="progress-wrapper">
+            <div id="progress-text">0%</div>
+            <div id="progress-fill"></div>
         </div>
     </div>
 
     <div id="end-screen">
-        <h1 style="color: red; font-size: 50px;">😈</h1>
-        <h2 style="margin: 10px;">تعيش وتاكل غيرها يا سيف!</h2>
-        <p style="font-size: 18px;">بياناتك زي الفل ومحدش خد حاجة 😂</p>
-        <p style="color: #888; font-size: 12px; margin-top: 20px;">Iphone 11 Secure System restored.</p>
-        <button onclick="location.reload()" style="padding: 15px 30px; background: #333; color: white; border: none; margin-top: 30px; border-radius: 5px;">خروج</button>
+        <h1 style="color: #0f0; font-size: 50px;">HACKED?</h1>
+        <h2 style="margin: 20px;">لأ متقلقش ده مقلب 😂</h2>
+        <p style="color: #ccc;">بيمسي عليك يا سيف!</p>
+        <p style="color: #555; font-size: 12px; margin-top: 30px;">(تمت استعادة النظام بنجاح)</p>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px;">خروج</button>
     </div>
 
     <script>
-        // البيانات المرعبة (Hardcoded)
-        const victimData = [
-            { label: "TARGET DETECTED", val: "ONLINE", delay: 500 },
-            { label: "IP ADDRESS", val: "197.55.23.11 (EXPOSED)", delay: 1500 },
-            { label: "DEVICE MODEL", val: "Apple iPhone 11", delay: 2500, color: "red" },
-            { label: "IOS VERSION", val: "17.4.1 (VULNERABLE)", delay: 3500 },
-            { label: "FULL NAME", val: "Seif Ayman Mostafa", delay: 4500, color: "red" },
-            { label: "GPS LOC", val: "Giza, Al Khamayel", delay: 6000, color: "red" },
-            { label: "AREA", val: "6 October City", delay: 7000 },
-            { label: "STATUS", val: "BACKUP IN PROGRESS...", delay: 8000 }
-        ];
+        // --- 1. إعدادات الماتريكس (خلفية الأكواد) ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
 
-        function startPrank() {
-            // 1. Fullscreen Request
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; // أثر خفيف للذيل
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0F0"; // لون أخضر
+            ctx.font = fontSize + "px arial";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+                    drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+
+        // --- 2. منطق المقلب ---
+        function startNightmare() {
+            // Fullscreen
             const el = document.documentElement;
             if(el.requestFullscreen) el.requestFullscreen();
-            else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 
-            // 2. Hide Lure, Show Hack
-            document.getElementById('lure-screen').style.display = 'none';
-            document.getElementById('hack-screen').style.display = 'block';
-            document.body.classList.add('alert-flash');
+            // Switch UI
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('terminal-container').style.display = 'flex';
 
-            // 3. Trap Logic (Back Button Loop)
-            history.pushState(null, null, document.URL);
-            window.addEventListener('popstate', function () {
-                history.pushState(null, null, document.URL);
-                alert("⚠️ SYSTEM ERROR: CANNOT EXIT DURING DATA TRANSFER ⚠️");
-            });
+            // Trap Back Button
+            history.pushState(null, null, location.href);
+            window.onpopstate = () => {
+                history.go(1);
+                // Fake Lag on back button
+                alert("SYSTEM BUSY: PROCESS CANNOT BE TERMINATED.");
+            };
 
-            // 4. Start Sequence
-            runConsole();
-            startFileTheft();
+            // Start Sequence
+            runTerminalLogs();
         }
 
-        function runConsole() {
-            const consoleDiv = document.getElementById('console');
+        // --- 3. سجلات الأكواد الوهمية ---
+        const fakeLogs = [
+            "Bypassing firewall...", "Accessing secure storage...", 
+            "Root privileges: GRANTED", "Mounting /data volume...", 
+            "Decrypting user passwords...", "Scanning DCIM folder...",
+            "Connecting to remote server (192.168.X.X)...",
+            "Uploading sensitive files...", "Keylogger installed."
+        ];
+
+        function runTerminalLogs() {
+            const logArea = document.getElementById('log-area');
+            let i = 0;
             
-            victimData.forEach(item => {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = 'console-line';
-                    
-                    let content = `<span class="label">>> ${item.label}:</span> `;
-                    content += `<span class="data ${item.color === 'red' ? 'danger' : ''}">${item.val}</span>`;
-                    
-                    line.innerHTML = content;
-                    consoleDiv.appendChild(line);
-                    
-                    // Vibrate on new data
-                    if(navigator.vibrate) navigator.vibrate(100);
-                    
-                }, item.delay);
-            });
-
-            // End Prank Timer
-            setTimeout(() => {
-                showEnd();
-            }, 14000); // مدة المقلب 14 ثانية
+            // كتابة أكواد سريعة
+            const logInt = setInterval(() => {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.textContent = "> " + fakeLogs[Math.floor(Math.random() * fakeLogs.length)];
+                logArea.appendChild(div);
+                
+                // Keep only last 10 lines
+                if (logArea.childElementCount > 10) logArea.removeChild(logArea.firstChild);
+                
+                i++;
+                if (i > 15) { // بعد شوية أكواد، اظهر بيانات سيف
+                    clearInterval(logInt);
+                    revealVictimData();
+                }
+            }, 200);
         }
 
-        function startFileTheft() {
-            const area = document.getElementById('files-area');
-            const counter = document.getElementById('file-counter');
-            let count = 0;
-
-            const icons = [
-                '📷 Img_001.jpg', '🎬 Vid_beach.mp4', '💬 WhatsApp_DB', 
-                '👤 Contacts.vcf', '🔑 Passwords.txt', '🖼️ DCIM_102.png',
-                '📱 iPhone_Backup'
-            ];
-
-            const theftInterval = setInterval(() => {
-                // Create Flying Element
-                const el = document.createElement('div');
-                el.className = 'flying-obj';
-                // اختيار أيقونة عشوائية
-                el.innerText = icons[Math.floor(Math.random() * icons.length)];
-                
-                // مكان عشوائي أفقي
-                el.style.left = Math.random() * 80 + "%";
-                
-                // سرعة عشوائية
-                const duration = (Math.random() * 1 + 0.5) + 's';
-                el.style.animationDuration = duration;
-
-                area.appendChild(el);
-
-                // Update Counter
-                count++;
-                counter.innerText = count + " Files Uploaded";
-
-                // Clean up DOM
-                setTimeout(() => { el.remove(); }, 1500);
-
-            }, 200); // سرعة ظهور الملفات
+        function revealVictimData() {
+            const box = document.getElementById('victim-box');
+            box.style.display = 'block';
+            
+            if(navigator.vibrate) navigator.vibrate([200, 100, 200]); // اهتزاز الصدمة
+            
+            // بدء شريط التحميل "الواقعي"
+            simulateRealLoading();
         }
 
-        function showEnd() {
-            document.getElementById('hack-screen').style.display = 'none';
-            document.getElementById('end-screen').style.display = 'flex';
-            document.body.classList.remove('alert-flash');
+        // --- 4. محاكاة التحميل (الواقعية والبطء) ---
+        function simulateRealLoading() {
+            const bar = document.getElementById('progress-fill');
+            const txt = document.getElementById('progress-text');
+            const status = document.getElementById('status-text');
+            
+            let progress = 0;
+            
+            const loadingLoop = setInterval(() => {
+                // منطق عشوائي للسرعة (Stuttering)
+                let jump = Math.random() * 2; 
+                
+                // تعليق متعمد في المنتصف
+                if (progress > 40 && progress < 60 && Math.random() > 0.8) {
+                    jump = 0; // لا تتقدم
+                    status.textContent = "ENCRYPTING DATA... (PLEASE WAIT)";
+                    status.classList.add('danger-text');
+                } else {
+                    status.textContent = "UPLOADING: " + Math.floor(Math.random()*999) + "_IMG.JPG";
+                    status.classList.remove('danger-text');
+                }
+
+                // تعليق مستفز في النهاية
+                if (progress > 95) {
+                    jump = 0.05; // بطيء جداً
+                    status.textContent = "FINALIZING CONNECTION...";
+                }
+
+                progress += jump;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(loadingLoop);
+                    setTimeout(showEndScreen, 1500);
+                }
+
+                bar.style.width = progress + "%";
+                txt.textContent = Math.floor(progress) + "%";
+
+            }, 150); // سرعة التحديث (كل ما الرقم زاد، التحميل بقى أبطأ)
+        }
+
+        function showEndScreen() {
             if(document.exitFullscreen) document.exitFullscreen();
+            document.getElementById('terminal-container').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+            canvas.style.display = 'none';
         }
 
-        // Prevent Closing Tab Warning
         window.onbeforeunload = function() {
-            return "Are you sure? Data transfer will be corrupted.";
+            return "Upload in progress. Don't close.";
         };
 
     </script>
