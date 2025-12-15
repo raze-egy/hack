@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYSTEM FAILURE</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* زر البداية المخادع */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            background: red;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* حاوية الأكواد */
+        #terminal {
+            display: none; /* مخفي في البداية */
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            color: #0f0; /* الأخضر الشهير */
+            font-size: 10px; /* خط صغير جداً لكثافة المعلومات */
+            line-height: 1.1;
+            text-shadow: 0 0 5px #0f0;
+            overflow: hidden;
+            word-break: break-all;
+            position: relative;
+        }
+
+        /* طبقة التشويش (Scanlines) */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* الوميض الأحمر عند الخطأ */
+        .critical-error {
+            background-color: #300 !important; /* خلفية حمراء داكنة */
+            color: white !important;
+            font-weight: bold;
+            font-size: 14px !important;
+        }
+
+        /* اهتزاز الشاشة بالكامل */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+            transform: translate3d(0, 0, 0);
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* رسالة النهاية */
+        #final-msg {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 30px;
+            text-align: center;
+            z-index: 2000;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay" onclick="triggerHack()">
+        <div style="text-align: center;">
+            <div class="play-btn">▶</div>
+            <p style="margin-top: 15px; font-family: sans-serif; color: #333;">Click to Play Video</p>
+        </div>
+    </div>
+
+    <div class="scanlines"></div>
+
+    <div id="terminal"></div>
+
+    <div id="final-msg">
+        <img src="https://media1.tenor.com/m/218M3k5uB6QAAAAC/mr-bean-funny.gif" style="width: 200px; border-radius: 10px;"><br><br>
+        عمر السعيد بيمسي<br>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const overlay = document.getElementById('start-overlay');
+        
+        // مولد أكواد عشوائية (Hex & Binary)
+        function generateGarbage() {
+            const chars = '0123456789ABCDEF';
+            let output = '';
+            // إنشاء سطر طويل من الأكواد العشوائية
+            for (let i = 0; i < 40; i++) {
+                output += chars.charAt(Math.floor(Math.random() * chars.length)) + ' ';
+            }
+            return output;
+        }
+
+        // رسائل خطأ مرعبة تظهر وسط الأكواد
+        const errors = [
+            "*** STOP: 0x000000D1 (0x0000000C, 0x00000002, 0x00000000, 0xF86B5A89)",
+            "FATAL SYSTEM EXCEPTION",
+            "DATA CORRUPTION DETECTED AT SECTOR 7G",
+            "UPLOADING PRIVATE DATA TO SERVER 192.168.X.X...",
+            "BYPASSING FIREWALL... SUCCESS",
+            "ROOT ACCESS: GRANTED",
+            "DELETING SYSTEM32...",
+            "OVERHEATING WARNING: CPU 98°C",
+            "KERNEL PANIC - NOT SYNCING: FATAL EXCEPTION",
+            "WIPING MEMORY DUMP..."
+        ];
+
+        function triggerHack() {
+            // تفعيل ملء الشاشة
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+
+            // إخفاء زر البداية وإظهار التيرمينال
+            overlay.style.display = 'none';
+            terminal.style.display = 'block';
+
+            // تفعيل مصيدة الرجوع
+            trapBack();
+
+            // بدء حلقة الرعب
+            let counter = 0;
+            const interval = setInterval(() => {
+                const line = document.createElement('div');
+                
+                // كل 15 سطر، اطبع رسالة خطأ كبيرة
+                if (Math.random() > 0.9) {
+                    line.className = 'critical-error';
+                    line.innerText = ">> " + errors[Math.floor(Math.random() * errors.length)];
+                    // اهتزاز قوي للموبايل
+                    if (navigator.vibrate) navigator.vibrate(100);
+                    // اهتزاز للشاشة
+                    document.body.classList.add('shake');
+                    setTimeout(() => document.body.classList.remove('shake'), 200);
+                } else {
+                    // سطر كود عادي (Hex)
+                    line.innerText = `0x${Math.floor(Math.random()*9999)} ` + generateGarbage();
+                    // اهتزاز خفيف جداً ومتقطع
+                    if (Math.random() > 0.5 && navigator.vibrate) navigator.vibrate(10); 
+                }
+
+                terminal.appendChild(line);
+                
+                // النزول لأسفل الشاشة تلقائياً
+                window.scrollTo(0, document.body.scrollHeight);
+
+                // حذف الأسطر القديمة عشان المتصفح ميهنجش
+                if (terminal.childElementCount > 100) {
+                    terminal.removeChild(terminal.firstChild);
+                }
+
+                counter++;
+                // مدة المقلب (مثلاً 400 تحديث - حوالي 10 ثواني)
+                if (counter > 400) {
+                    clearInterval(interval);
+                    showEnd();
+                }
+
+            }, 20); // سرعة جنونية (20 مللي ثانية)
+        }
+
+        function trapBack() {
+            history.pushState(null, null, location.href);
+            window.onpopstate = function () {
+                history.go(1);
+                // عند محاولة الرجوع، أضف رسالة رفض مرعبة
+                const line = document.createElement('div');
+                line.style.color = 'red';
+                line.style.fontSize = '20px';
+                line.style.backgroundColor = 'white';
+                line.innerText = "🚫 ACCESS DENIED 🚫";
+                terminal.appendChild(line);
+                window.scrollTo(0, document.body.scrollHeight);
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            };
+        }
+
+        function showEnd() {
+            terminal.style.display = 'none';
+            document.getElementById('final-msg').style.display = 'block';
+            document.body.style.backgroundColor = '#333'; // تغيير الخلفية
+            document.exitFullscreen();
+        }
+
+        // تحذير عند محاولة إغلاق الصفحة
+        window.onbeforeunload = function() {
+            return "Are you sure? System is busy.";
+        };
+    </script>
+</body>
+</html>
