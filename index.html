@@ -3,252 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SYSTEM FAILURE</title>
+    <title>Verification Required</title>
     <style>
+        /* إعدادات الصفحة الأساسية */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             background-color: #000;
+            font-family: 'Courier New', monospace;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* زر البداية المخادع */
-        #start-overlay {
+        /* 1. صفحة الطعم (Google Verification Style) */
+        #lure-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            z-index: 1000;
+            justify-content: center;
+            z-index: 9999;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .verify-box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .btn-verify {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 20px;
             cursor: pointer;
         }
 
-        .play-btn {
-            width: 80px;
-            height: 80px;
-            background: red;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 40px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            animation: pulse 1.5s infinite;
-        }
-
-        /* حاوية الأكواد */
-        #terminal {
-            display: none; /* مخفي في البداية */
-            width: 100%;
-            height: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            color: #0f0; /* الأخضر الشهير */
-            font-size: 10px; /* خط صغير جداً لكثافة المعلومات */
-            line-height: 1.1;
-            text-shadow: 0 0 5px #0f0;
-            overflow: hidden;
-            word-break: break-all;
+        /* 2. شاشة الرعب والاختراق */
+        #hack-screen {
+            display: none;
             position: relative;
-        }
-
-        /* طبقة التشويش (Scanlines) */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.2) 50%,
-                rgba(0,0,0,0.2)
-            );
+            background: #000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* تأثير الخطوط (CRT) */
+        .scanline {
+            position: fixed;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
             background-size: 100% 4px;
             pointer-events: none;
-            z-index: 999;
+            z-index: 50;
         }
 
-        /* الوميض الأحمر عند الخطأ */
-        .critical-error {
-            background-color: #300 !important; /* خلفية حمراء داكنة */
-            color: white !important;
-            font-weight: bold;
-            font-size: 14px !important;
+        /* نصوص البيانات */
+        .console-line {
+            font-size: 14px;
+            margin-bottom: 8px;
+            opacity: 0; /* مخفي في البداية */
+            animation: typeOn 0.1s forwards;
+            border-bottom: 1px solid #111;
+            padding-bottom: 2px;
         }
 
-        /* اهتزاز الشاشة بالكامل */
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
-            transform: translate3d(0, 0, 0);
+        .label { color: #00ff00; margin-right: 10px; }
+        .data { color: #fff; font-weight: bold; text-transform: uppercase; }
+        .danger { color: #ff3333; text-shadow: 0 0 5px red; font-size: 16px; }
+
+        /* منطقة سرقة الملفات */
+        #files-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            overflow: hidden;
+            border-top: 2px solid #ff3333;
+            background: rgba(20, 0, 0, 0.5);
         }
 
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        /* رسالة النهاية */
-        #final-msg {
-            display: none;
-            position: fixed;
-            top: 50%;
+        .stealing-header {
+            position: absolute;
+            top: -15px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 30px;
-            text-align: center;
-            z-index: 2000;
-            font-family: Arial, sans-serif;
+            transform: translateX(-50%);
+            background: #ff3333;
+            color: #000;
+            padding: 2px 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        /* الأيقونات الطائرة */
+        .flying-obj {
+            position: absolute;
+            bottom: -60px;
+            font-size: 40px;
+            opacity: 0.8;
+            animation: floatUp linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-400px) scale(0.5); opacity: 0; }
+        }
+
+        @keyframes typeOn { to { opacity: 1; } }
+        
+        /* وميض أحمر للشاشة */
+        .alert-flash {
+            animation: flashRed 1s infinite;
+        }
+
+        @keyframes flashRed {
+            0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+            50% { box-shadow: inset 0 0 50px 20px rgba(255, 0, 0, 0.5); }
+        }
+
+        /* شاشة النهاية */
+        #end-screen {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; font-family: Tahoma, sans-serif;
         }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay" onclick="triggerHack()">
-        <div style="text-align: center;">
-            <div class="play-btn">▶</div>
-            <p style="margin-top: 15px; font-family: sans-serif; color: #333;">Click to Play Video</p>
+    <div id="lure-screen">
+        <div class="verify-box">
+            <h3 style="margin-top: 0; color: #333;">Security Check</h3>
+            <p style="color: #666; font-size: 14px;">Please verify you are human to continue.</p>
+            <div style="background: #f9f9f9; padding: 15px; margin: 10px 0; border: 1px solid #ddd;">
+                <input type="checkbox" id="human-chk" onclick="startPrank()"> I'm not a robot
+            </div>
+            <p style="font-size: 10px; color: #999;">Google Recaptcha Simulation</p>
         </div>
     </div>
 
-    <div class="scanlines"></div>
+    <div id="hack-screen">
+        <div class="scanline"></div>
+        <div id="console"></div>
+        
+        <div id="files-area">
+            <div class="stealing-header">UPLOADING DATA TO CLOUD...</div>
+            <div id="file-counter" style="position: absolute; top: 10px; right: 10px; color: #ff3333; font-weight: bold;">0 Files</div>
+        </div>
+    </div>
 
-    <div id="terminal"></div>
-
-    <div id="final-msg">
-        <img src="https://media1.tenor.com/m/218M3k5uB6QAAAAC/mr-bean-funny.gif" style="width: 200px; border-radius: 10px;"><br><br>
-        عمر السعيد بيمسي<br>
+    <div id="end-screen">
+        <h1 style="color: red; font-size: 50px;">😈</h1>
+        <h2 style="margin: 10px;">تعيش وتاكل غيرها يا سيف!</h2>
+        <p style="font-size: 18px;">بياناتك زي الفل ومحدش خد حاجة 😂</p>
+        <p style="color: #888; font-size: 12px; margin-top: 20px;">Iphone 11 Secure System restored.</p>
+        <button onclick="location.reload()" style="padding: 15px 30px; background: #333; color: white; border: none; margin-top: 30px; border-radius: 5px;">خروج</button>
     </div>
 
     <script>
-        const terminal = document.getElementById('terminal');
-        const overlay = document.getElementById('start-overlay');
-        
-        // مولد أكواد عشوائية (Hex & Binary)
-        function generateGarbage() {
-            const chars = '0123456789ABCDEF';
-            let output = '';
-            // إنشاء سطر طويل من الأكواد العشوائية
-            for (let i = 0; i < 40; i++) {
-                output += chars.charAt(Math.floor(Math.random() * chars.length)) + ' ';
-            }
-            return output;
-        }
-
-        // رسائل خطأ مرعبة تظهر وسط الأكواد
-        const errors = [
-            "*** STOP: 0x000000D1 (0x0000000C, 0x00000002, 0x00000000, 0xF86B5A89)",
-            "FATAL SYSTEM EXCEPTION",
-            "DATA CORRUPTION DETECTED AT SECTOR 7G",
-            "UPLOADING PRIVATE DATA TO SERVER 192.168.X.X...",
-            "BYPASSING FIREWALL... SUCCESS",
-            "ROOT ACCESS: GRANTED",
-            "DELETING SYSTEM32...",
-            "OVERHEATING WARNING: CPU 98°C",
-            "KERNEL PANIC - NOT SYNCING: FATAL EXCEPTION",
-            "WIPING MEMORY DUMP..."
+        // البيانات المرعبة (Hardcoded)
+        const victimData = [
+            { label: "TARGET DETECTED", val: "ONLINE", delay: 500 },
+            { label: "IP ADDRESS", val: "197.55.23.11 (EXPOSED)", delay: 1500 },
+            { label: "DEVICE MODEL", val: "Apple iPhone 11", delay: 2500, color: "red" },
+            { label: "IOS VERSION", val: "17.4.1 (VULNERABLE)", delay: 3500 },
+            { label: "FULL NAME", val: "Seif Ayman Mostafa", delay: 4500, color: "red" },
+            { label: "GPS LOC", val: "Giza, Al Khamayel", delay: 6000, color: "red" },
+            { label: "AREA", val: "6 October City", delay: 7000 },
+            { label: "STATUS", val: "BACKUP IN PROGRESS...", delay: 8000 }
         ];
 
-        function triggerHack() {
-            // تفعيل ملء الشاشة
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            }
+        function startPrank() {
+            // 1. Fullscreen Request
+            const el = document.documentElement;
+            if(el.requestFullscreen) el.requestFullscreen();
+            else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 
-            // إخفاء زر البداية وإظهار التيرمينال
-            overlay.style.display = 'none';
-            terminal.style.display = 'block';
+            // 2. Hide Lure, Show Hack
+            document.getElementById('lure-screen').style.display = 'none';
+            document.getElementById('hack-screen').style.display = 'block';
+            document.body.classList.add('alert-flash');
 
-            // تفعيل مصيدة الرجوع
-            trapBack();
+            // 3. Trap Logic (Back Button Loop)
+            history.pushState(null, null, document.URL);
+            window.addEventListener('popstate', function () {
+                history.pushState(null, null, document.URL);
+                alert("⚠️ SYSTEM ERROR: CANNOT EXIT DURING DATA TRANSFER ⚠️");
+            });
 
-            // بدء حلقة الرعب
-            let counter = 0;
-            const interval = setInterval(() => {
-                const line = document.createElement('div');
-                
-                // كل 15 سطر، اطبع رسالة خطأ كبيرة
-                if (Math.random() > 0.9) {
-                    line.className = 'critical-error';
-                    line.innerText = ">> " + errors[Math.floor(Math.random() * errors.length)];
-                    // اهتزاز قوي للموبايل
-                    if (navigator.vibrate) navigator.vibrate(100);
-                    // اهتزاز للشاشة
-                    document.body.classList.add('shake');
-                    setTimeout(() => document.body.classList.remove('shake'), 200);
-                } else {
-                    // سطر كود عادي (Hex)
-                    line.innerText = `0x${Math.floor(Math.random()*9999)} ` + generateGarbage();
-                    // اهتزاز خفيف جداً ومتقطع
-                    if (Math.random() > 0.5 && navigator.vibrate) navigator.vibrate(10); 
-                }
-
-                terminal.appendChild(line);
-                
-                // النزول لأسفل الشاشة تلقائياً
-                window.scrollTo(0, document.body.scrollHeight);
-
-                // حذف الأسطر القديمة عشان المتصفح ميهنجش
-                if (terminal.childElementCount > 100) {
-                    terminal.removeChild(terminal.firstChild);
-                }
-
-                counter++;
-                // مدة المقلب (مثلاً 400 تحديث - حوالي 10 ثواني)
-                if (counter > 400) {
-                    clearInterval(interval);
-                    showEnd();
-                }
-
-            }, 20); // سرعة جنونية (20 مللي ثانية)
+            // 4. Start Sequence
+            runConsole();
+            startFileTheft();
         }
 
-        function trapBack() {
-            history.pushState(null, null, location.href);
-            window.onpopstate = function () {
-                history.go(1);
-                // عند محاولة الرجوع، أضف رسالة رفض مرعبة
-                const line = document.createElement('div');
-                line.style.color = 'red';
-                line.style.fontSize = '20px';
-                line.style.backgroundColor = 'white';
-                line.innerText = "🚫 ACCESS DENIED 🚫";
-                terminal.appendChild(line);
-                window.scrollTo(0, document.body.scrollHeight);
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            };
+        function runConsole() {
+            const consoleDiv = document.getElementById('console');
+            
+            victimData.forEach(item => {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    line.className = 'console-line';
+                    
+                    let content = `<span class="label">>> ${item.label}:</span> `;
+                    content += `<span class="data ${item.color === 'red' ? 'danger' : ''}">${item.val}</span>`;
+                    
+                    line.innerHTML = content;
+                    consoleDiv.appendChild(line);
+                    
+                    // Vibrate on new data
+                    if(navigator.vibrate) navigator.vibrate(100);
+                    
+                }, item.delay);
+            });
+
+            // End Prank Timer
+            setTimeout(() => {
+                showEnd();
+            }, 14000); // مدة المقلب 14 ثانية
+        }
+
+        function startFileTheft() {
+            const area = document.getElementById('files-area');
+            const counter = document.getElementById('file-counter');
+            let count = 0;
+
+            const icons = [
+                '📷 Img_001.jpg', '🎬 Vid_beach.mp4', '💬 WhatsApp_DB', 
+                '👤 Contacts.vcf', '🔑 Passwords.txt', '🖼️ DCIM_102.png',
+                '📱 iPhone_Backup'
+            ];
+
+            const theftInterval = setInterval(() => {
+                // Create Flying Element
+                const el = document.createElement('div');
+                el.className = 'flying-obj';
+                // اختيار أيقونة عشوائية
+                el.innerText = icons[Math.floor(Math.random() * icons.length)];
+                
+                // مكان عشوائي أفقي
+                el.style.left = Math.random() * 80 + "%";
+                
+                // سرعة عشوائية
+                const duration = (Math.random() * 1 + 0.5) + 's';
+                el.style.animationDuration = duration;
+
+                area.appendChild(el);
+
+                // Update Counter
+                count++;
+                counter.innerText = count + " Files Uploaded";
+
+                // Clean up DOM
+                setTimeout(() => { el.remove(); }, 1500);
+
+            }, 200); // سرعة ظهور الملفات
         }
 
         function showEnd() {
-            terminal.style.display = 'none';
-            document.getElementById('final-msg').style.display = 'block';
-            document.body.style.backgroundColor = '#333'; // تغيير الخلفية
-            document.exitFullscreen();
+            document.getElementById('hack-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+            document.body.classList.remove('alert-flash');
+            if(document.exitFullscreen) document.exitFullscreen();
         }
 
-        // تحذير عند محاولة إغلاق الصفحة
+        // Prevent Closing Tab Warning
         window.onbeforeunload = function() {
-            return "Are you sure? System is busy.";
+            return "Are you sure? Data transfer will be corrupted.";
         };
+
     </script>
 </body>
 </html>
